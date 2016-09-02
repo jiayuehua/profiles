@@ -15,6 +15,7 @@ done
 rm -f ${BASH_FILES[@]}
 
 cp $SELF_DIR/bashrc ~/.bashrc
+cp $SELF_DIR/bash_aliases ~/.bash_aliases
 ln -s .bashrc ~/.bash_profile
 
 [[ -s ~/.git-completion.bash ]] || {
