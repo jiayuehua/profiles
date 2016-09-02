@@ -104,24 +104,48 @@ function __setup_aliases
     alias grep='grep --color=auto'
 
     case $(uname -s) in
-        Linux)
-            lsprog="/bin/ls --color=auto"
-            alias ls="$lsprog -F"
-            alias l="$lsprog -lF"
-            alias lsps='ps -ef f | grep -vw grep | grep -i'
-            ;;
-        Darwin)
-            type gls >& /dev/null && lsprog="gls --color=auto"
-            alias ls="$lsprog -F"
-            alias l="$lsprog -lF"
-            alias lsps='ps -ax -o user,pid,ppid,stime,tty,time,command | grep -vw grep | grep -i'
-            ;;
-        *)
-            alias ls="$lsprog -F"
-            alias l="$lsprog -lF"
-            alias lsps='ps -auf | grep -vw grep | grep -i'
-            ;;
+      Linux)
+        lsprog="/bin/ls --color=auto"
+        alias ls="$lsprog -F"
+        alias l="$lsprog -lF"
+        alias lsps='ps -ef f | grep -vw grep | grep -i'
+        ;;
+      Darwin)
+        type gls >& /dev/null && lsprog="gls --color=auto"
+        alias ls="$lsprog -F"
+        alias l="$lsprog -lF"
+        alias lsps='ps -ax -o user,pid,ppid,stime,tty,time,command | grep -vw grep | grep -i'
+        ;;
+      *)
+        alias ls="$lsprog -F"
+        alias l="$lsprog -lF"
+        alias lsps='ps -auf | grep -vw grep | grep -i'
+        ;;
     esac
+
+    # enable color support of ls and also add handy aliases
+    if [ -x /usr/bin/dircolors ]; then
+      test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+      alias ls='ls --color=auto'
+      #alias dir='dir --color=auto'
+      #alias vdir='vdir --color=auto'
+
+      alias grep='grep --color=auto'
+      alias fgrep='fgrep --color=auto'
+      alias egrep='egrep --color=auto'
+    fi
+
+    # some more ls aliases
+    alias ll='ls -alF'
+    alias la='ls -A'
+    alias l='ls -CF'
+    alias emacs='emacs -nw'
+    #alias g++='g++ --std=c++11 -g -O0'
+    alias e='emacs -nw'
+    alias yum_install='yum install -y'
+    alias vi='vim'
+    alias make='make -j 8'
+    alias mkdir='mkdir -p'
 }
 
 function __setup_dir_colors
