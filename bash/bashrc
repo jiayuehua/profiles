@@ -187,46 +187,6 @@ function _git_active_branch
     fi
 }
 
-# Fancy PS1, prompt exit status of last command, currenet time, hostname, time,
-# cwd, git status and branch, also prompt the '%' in reverse color when we have
-# background jobs. '\[' and '\]' is to mark ansi colors to allow shell to
-# calculate prompt string length correctly
-#
-function __setup_prompt
-{
-    local _DR="\[\e[31m\]"        # red
-    local _DG="\[\e[32m\]"        # green
-    local _DY="\[\e[33m\]"        # yellow
-    local _DB="\[\e[34m\]"        # blue
-    local _DM="\[\e[35m\]"        # magenta
-    local _DC="\[\e[36m\]"        # cyan
-    local _RV="\[\e[7m\]"         # reverse
-    local _NC="\[\e[0m\]"         # no color
-
-    PS1="\$([[ \$? == 0 ]] && echo '${_DG}✔' || echo '${_DR}✘') \t "
-
-    # Detect whether this box has ssh keys, distinguish hostname color and setup
-    # ssh-agent related environment accordingly
-    #
-    if __has_ssh_key; then
-        # I am on my own machine, try load ssh-agent related environments
-        PS1="${PS1}${_DB}"                              # blue hostname
-    else
-        # Otherwise assume I am on other's box, highlight hostname in magenta
-        PS1="${PS1}${_DM}"                              # magenta hostname
-    fi
-
-    # Highlight hostname in reverse green if inside a container
-    if [[ -n $container_uuid ]] || [[ -f /.dockerenv ]]; then
-        PS1="${PS1}${_RV}${_DG}"
-    fi
-    PS1="${PS1}$(hostname -f)"
-    PS1="${PS1}${_NC}:${_DY}\w${_NC}"                   # yellow cwd
-    PS1="${PS1}\$(_git_active_branch)"                  # git branch name
-    PS1="${PS1}${_DC} ⤾\n"                              # cyan wrap char, newline
-    PS1="${PS1}\$([[ -z \$(jobs) ]] || echo '$_RV')"    # reverse bg job indicator
-    PS1="${PS1}\\\$${_NC} "                             # $ or #
-}
 
 # Load custom settings from ~/.profile.d/*.sh, typical settings are
 # docker-machine env, GOPATH, customized PATH etc.
@@ -358,44 +318,47 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;34m\]\w\[\033[00m\]\$ '
+    #PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\w\$ '
+    #PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
 xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
+      PS1="\[\e]0;${debian_chroot:+($debian_chroot)} \w\a\]$PS1"
+      #PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+      ;;
+  *)
+      ;;
+  esac
 
 
-## Add an "alert" alias for long running commands.  Use like so:
-##   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+  ## Add an "alert" alias for long running commands.  Use like so:
+  ##   sleep 10; alert
+  alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
-export CCACHE_PREFIX="distcc"
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+  export CCACHE_PREFIX="distcc"
+  # Alias definitions.
+  # You may want to put all your additions into a separate file like
+  # ~/.bash_aliases, instead of adding them here directly.
+  # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
-#enable programmable completion features (you don't need to enable this, if it's already enabled in /etc/bash.bashrc and /etc/profile sources /etc/bash.bashrc).
-if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
+  if [ -f ~/.bash_aliases ]; then
+      . ~/.bash_aliases
   fi
-fi
-export DISTCC_HOSTS='10.100.54.72 localhost'
-#export TERM=xterm-256color
+
+  #enable programmable completion features (you don't need to enable this, if it's already enabled in /etc/bash.bashrc and /etc/profile sources /etc/bash.bashrc).
+  if ! shopt -oq posix; then
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+      . /usr/share/bash-completion/bash_completion
+    elif [ -f /etc/bash_completion ]; then
+      . /etc/bash_completion
+    fi
+  fi
+  export DISTCC_HOSTS='10.100.54.72 localhost'
+  #export TERM=xterm-256color
 
