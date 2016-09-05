@@ -1,0 +1,388 @@
+# Matthew Wang's bash profile for general Linux/Unix
+#
+# Suggestion: ln -sf .bashrc .bash_profile
+#
+# Implementation note: all functions with name starts with '__' are considered
+# private and will be unset at the end.
+
+function __main
+{
+    local fn
+
+    [[ ! -f /etc/profile ]] || source /etc/profile
+    [[ ! -f /etc/bashrc ]] || source /etc/bashrc
+    unset PROMPT_COMMAND    # Let tmux manage it
+
+    for fn in \
+        __setup_path \
+        __setup_shell_options \
+        __setup_environments \
+        __setup_aliases \
+        __setup_completions \
+        __setup_dir_colors \
+        __setup_ssh_agent \
+        __setup_custom_profiles \
+    ; do
+        $fn; unset -f $fn
+    done
+}
+
+function __prepend_path
+{
+    [[ :$PATH: == *:${1:?}:* ]] || PATH=$1:$PATH
+}
+
+function __setup_path
+{
+    local x
+
+    # prepend paths
+    for x in /sbin /usr/sbin /bin /usr/bin /usr/local/bin; do
+        __prepend_path $x
+    done
+
+    # Try load ChefDK if installed, or else rbenv if installed
+    if [[ -x /opt/chefdk/bin/chef ]]; then
+        eval "$(/opt/chefdk/bin/chef shell-init bash)"
+    elif type -P rbenv > /dev/null; then
+        eval "$(rbenv init -)"
+    fi
+
+    # ~/bin takes precedence
+    __prepend_path ~/bin
+
+    export PATH
+}
+
+function __setup_shell_options
+{
+    bind 'set match-hidden-files off' >& /dev/null  # No tab-expand hidden files
+    ! test -t 0 || stty stop undef >& /dev/null     # Make 'C-s' to do i-search
+}
+
+function __setup_environments
+{
+    export HISTFILE=~/.bash_history     # In case switched from zsh temporally
+    export HISTSIZE=10000
+    export EDITOR=vim
+
+    # Locale (LC_*) matters for ls and sort on Linux, see also
+    # www.gnu.org/software/coreutils/faq/#Sort-does-not-sort-in-normal-order_0021
+    #
+    [[ $(uname -s) != Linux ]] || export LC_COLLATE=C
+}
+
+# Non "private" helper function to auto complete hostnames, note 'complete -A
+# hostname' also works but it does not recognize new $HOSTFILE
+#
+function _host_complete
+{
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    local hosts=$(sed -ne 's/[, ].*//p' ~/.ssh/known_hosts* 2>/dev/null)
+    COMPREPLY=($(compgen -W "$hosts" -- $cur))
+}
+
+function __setup_completions
+{
+    # https://raw.github.com/git/git/master/contrib/completion/git-completion.bash
+    [[ ! -f ~/.git-completion.bash ]] || . ~/.git-completion.bash
+    complete -F _host_complete ssh scp host nc ping telnet
+    complete -A export unset
+}
+
+function __setup_aliases
+{
+    local lsprog="/bin/ls"
+
+    alias ..='cd ..'
+    alias ...='cd ../..'
+    alias ....='cd ../../..'
+    alias .....='cd ../../../..'
+    # Skip system wide vimrc to reduce startup time
+    ! type vim >& /dev/null || alias vi='vim -Xn -u ~/.vimrc'
+    ! type ag >& /dev/null || alias ag='command ag --nogroup'
+    alias grep='grep --color=auto'
+
+    case $(uname -s) in
+      Linux)
+        lsprog="/bin/ls --color=auto"
+        alias ls="$lsprog -F"
+        alias l="$lsprog -lF"
+        alias lsps='ps -ef f | grep -vw grep | grep -i'
+        ;;
+      Darwin)
+        type gls >& /dev/null && lsprog="gls --color=auto"
+        alias ls="$lsprog -F"
+        alias l="$lsprog -lF"
+        alias lsps='ps -ax -o user,pid,ppid,stime,tty,time,command | grep -vw grep | grep -i'
+        ;;
+      *)
+        alias ls="$lsprog -F"
+        alias l="$lsprog -lF"
+        alias lsps='ps -auf | grep -vw grep | grep -i'
+        ;;
+    esac
+
+    # enable color support of ls and also add handy aliases
+    if [ -x /usr/bin/dircolors ]; then
+      test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+      alias ls='ls --color=auto'
+      #alias dir='dir --color=auto'
+      #alias vdir='vdir --color=auto'
+
+      alias grep='grep --color=auto'
+      alias fgrep='fgrep --color=auto'
+      alias egrep='egrep --color=auto'
+    fi
+
+    # some more ls aliases
+    alias ll='ls -alF'
+    alias la='ls -A'
+    alias l='ls -CF'
+    alias emacs='emacs -nw'
+    #alias g++='g++ --std=c++11 -g -O0'
+    alias e='emacs -nw'
+    alias yum_install='yum install -y'
+    alias vi='vim'
+    alias make='make -j 8'
+    alias mkdir='mkdir -p'
+}
+
+function __setup_dir_colors
+{
+    local prog=dircolors
+
+    [[ $(uname -s) != Darwin ]] || prog=gdircolors
+    if type $prog >& /dev/null && [[ -f ~/.dircolors ]]; then
+        eval $($prog -b ~/.dircolors)
+    fi
+}
+
+function __has_ssh_key
+{
+    [[ -f ~/.ssh/$USER.key ]] || ls ~/.ssh/id_?sa >& /dev/null
+}
+
+function __load_ssh_key
+{
+    [[ ! -f "${1:?}" ]] || ssh-add -L | grep -qw "$1" || ssh-add "$1"
+}
+
+# ssh-add -l exits code 2 when unable to connect to the agent
+function __setup_ssh_agent
+{
+    local rc=~/.ssh-agent.rc
+
+    __has_ssh_key || return 0
+    [[ ! -f $rc ]] || source $rc
+    if [[ $(ssh-add -l >& /dev/null; echo $?) == 2 ]]; then
+        #print -P "%{\e[31m%}Starting a new ssh-agent process...%{\e[0m}" >&2
+        #print -P "%{\e[31m%}Starting a new ssh-agent process...%{\e[0m}" >&2
+        echo Starting a new ssh-agent process...
+        rm -f ~/.ssh-agent.sock
+        ssh-agent -s -a ~/.ssh-agent.sock | sed '/^echo/d' > $rc
+        source $rc
+    fi
+
+    __load_ssh_key ~/.ssh/$USER.key
+    __load_ssh_key ~/.ssh/id_rsa
+    __load_ssh_key ~/.ssh/id_dsa
+}
+
+# Non "private" helper function used to setup PS1
+function _git_active_branch
+{
+    local branch info age track
+
+    [[ $(git rev-parse --is-inside-work-tree 2>/dev/null) == true ]] || return
+    branch=$(git symbolic-ref HEAD 2>/dev/null)
+    branch=${branch#refs/heads/}
+    info=$(git status -s 2>/dev/null)
+    age=$(git log --pretty=format:'%cr' -1 refs/heads/$branch 2>/dev/null)
+    track=$(git status -sb 2>/dev/null | sed -n 's/^##.*\[\(.*\)\].*/, \1/p')
+
+    # NOTE: have to use $'string' for ansi escape sequence here
+    if [[ -z $info ]]; then
+        echo -ne $'\e[32m'" ($branch) "$'\e[36m'"[${age}${track}]"
+    elif [[ -z $(echo "$info" | grep -v '^??') ]]; then
+        echo -ne $'\e[35m'" ($branch) "$'\e[36m'"[${age}${track}]"
+    else
+        echo -ne $'\e[31m'" ($branch) "$'\e[36m'"[${age}${track}]"
+    fi
+}
+
+
+# Load custom settings from ~/.profile.d/*.sh, typical settings are
+# docker-machine env, GOPATH, customized PATH etc.
+#
+function __setup_custom_profiles
+{
+    local p
+
+    ls ~/.profiles.d/*.sh >& /dev/null || return 0
+
+    for p in ~/.profiles.d/*.sh; do
+        source $p
+    done
+}
+
+# Find a file which name matches given pattern (ERE, case insensitive)
+function f
+{
+    local pat=${1?'Usage: f ERE-pattern [path...]'}
+    shift
+    find ${@:-.} \( -path '*/.svn' -o -path '*/.git' -o -path '*/.idea' \) \
+        -prune -o -print -follow | grep -iE "$pat"
+}
+
+# Load file list generated by f() in vim, type 'gf' to jump to the file
+function vif
+{
+    local tmpf=/tmp/viftmpfile.$RANDOM$$
+    f "$@" > $tmpf && vi -c "/$1" $tmpf && rm -f $tmpf
+}
+
+# Grep a ERE pattern in cwd or given path
+function g
+{
+    local string_pat=${1:?"Usage: g ERE-pattern [grep opts] [path...]"}
+    shift
+    local grep_opts="--color=auto"
+    local paths
+
+    while (( $# > 0 )); do
+        case "$1" in
+            -*) grep_opts="$grep_opts $1"; shift;;
+            *) paths="$paths $1"; shift;;
+        esac
+    done
+    [[ -n "$paths" ]] || paths="."
+
+    find $paths \( -path '*/.svn' -o -path '*/.git' -o -path '*/.idea' \) \
+        -prune -o -type f -print0 -follow \
+        | eval "xargs -0 -P128 grep -EH $grep_opts '$string_pat'"
+}
+
+########################################################################
+# Setup everything and unset "private" functions
+########################################################################
+
+__main
+unset -f __prepend_path __has_ssh_key __load_ssh_key __main
+
+#vim:set et sts=4 sw=4 ft=sh:
+
+
+
+########################################################################
+#####                                                     
+#####             Jia Yue Hua     @ earth                 
+#####                                                     
+########################################################################
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+
+# for examples
+
+set -o emacs
+#export EDITOR='/usr/bin/emacs -nw'
+export EDITOR='vim'
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=10000
+HISTFILESIZE=10000
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# set variable identifying the chroot you work in (used in the prompt below)
+#if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    #debian_chroot=$(cat /etc/debian_chroot)
+#fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+#force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+  # We have color support; assume it's compliant with Ecma-48
+  # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+  # a case would tend to support setf rather than setaf.)
+  color_prompt=yes
+    else
+  color_prompt=
+    fi
+fi
+
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;34m\]\w\[\033[00m\]\$ '
+    #PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\w\$ '
+    #PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+
+#If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+      #PS1="\[\e]0;${debian_chroot:+($debian_chroot)} \w\a\]$PS1"
+      PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\h\a\]$PS1"
+      ;;
+  *)
+      ;;
+  esac
+
+
+  ## Add an "alert" alias for long running commands.  Use like so:
+  ##   sleep 10; alert
+  alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
+  export CCACHE_PREFIX="distcc"
+  # Alias definitions.
+  # You may want to put all your additions into a separate file like
+  # ~/.bash_aliases, instead of adding them here directly.
+  # See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+  if [ -f ~/.bash_aliases ]; then
+      . ~/.bash_aliases
+  fi
+
+  #enable programmable completion features (you don't need to enable this, if it's already enabled in /etc/bash.bashrc and /etc/profile sources /etc/bash.bashrc).
+  if ! shopt -oq posix; then
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+      . /usr/share/bash-completion/bash_completion
+    elif [ -f /etc/bash_completion ]; then
+      . /etc/bash_completion
+    fi
+  fi
+  export DISTCC_HOSTS='10.100.54.72 localhost'
+  #export TERM=xterm-256color
+
