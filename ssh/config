@@ -1,0 +1,19 @@
+
+Host github.com 
+  Hostname github.com 
+  User git
+  ProxyCommand ~/.ssh/proxy-wrapper  '%h %p'
+
+Host le
+  Hostname  jump3.oss.letv.cn
+  User jiayuehua
+  Port 50022
+
+Host test72
+  Hostname 10.100.54.72
+  User rob
+Host *+*
+        ProxyCommand ssh -W $(echo %h | sed 's/^.*+//;s/^\([^:]*$\)/\1:22/') $(echo %h | sed 's/+[^+]*$//;s/\([^+%%]*\)%%\([^+]*\)$/\2 -l \1/;s/:\([^:+]*\)$/ -p \1/')
+
+Host */* 
+  ProxyCommand ssh %r@$(dirname %h) -W $(basename %h):%p
