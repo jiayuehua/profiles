@@ -35,23 +35,24 @@ cnoreabbrev af AckFile
 " in golang, install 'gocode' to work with 'vim-go'.  For example run this from
 " command line: GOPATH=~ vim a.go +GoInstallBinaries +qall
 "
-if has('lua')
-    Plug 'Shougo/neocomplete.vim'
-    let g:neocomplete#enable_at_startup = 1
-    let g:neocomplete#enable_smart_case = 1
-    let g:neocomplete#min_keyword_length = 3
-    let g:neocomplete#auto_completion_start_length = 1
-    inoremap <expr><Tab> pumvisible() ? "\<C-n>" : "\<Tab>"  " Tab completion
-else
-    Plug 'ervandew/supertab'
-    let g:SuperTabDefaultCompletionType = "context"
-    let g:SuperTabContextDefaultCompletionType = "<c-n>"
-    let g:SuperTabNoCompleteAfter =
-        \ ['^', '\s', '[^-]>', "'", '[~`!@#$%^&*()+={},</?\"\[\]\|-]']
+"if has('lua')
+    "Plug 'Shougo/neocomplete.vim'
+    "let g:neocomplete#enable_at_startup = 1
+    "let g:neocomplete#enable_smart_case = 1
+    "let g:neocomplete#min_keyword_length = 3
+    "let g:neocomplete#auto_completion_start_length = 1
+    ""inoremap <expr><Tab> pumvisible() ? "\<C-n>" : "\<Tab>"  " Tab completion
+    "inoremap <expr><Tab>  "\<C-n>"   " Tab completion
+"else
+    "Plug 'ervandew/supertab'
+    "let g:SuperTabDefaultCompletionType = "context"
+    "let g:SuperTabContextDefaultCompletionType = "<c-n>"
+    "let g:SuperTabNoCompleteAfter =
+        "\ ['^', '\s', '[^-]>', "'", '[~`!@#$%^&*()+={},</?\"\[\]\|-]']
 
-    " With my own fix for #53 on bitbucket
-    Plug 'ymattw/AutoComplPop', {'branch': 'dev'}
-endif
+    "" With my own fix for #53 on bitbucket
+    "Plug 'ymattw/AutoComplPop', {'branch': 'dev'}
+"endif
 
 " Remember to change terminal type to xterm-256color!
 Plug 'altercation/vim-colors-solarized'
@@ -83,7 +84,8 @@ set wildignore+=*.class,*.pyc,*.swp
 set wildignore+=*.jpg,*.png,*.gif,*.pdf,*.doc
 set wildignore+=*.tar,*.gz,*.tgz,*.bz2,*.zip
 set incsearch smartcase ignorecase hls  " Searching
-set encoding=utf-8 textwidth=79         " Editing
+set encoding=utf-8                      " Editing
+"set                textwidth=79        " Editing
 set backspace=indent,eol,start          " Editing
 set formatoptions=tcqron1MB             " Formatting, MB for multi-byte chars
 silent! set formatoptions+=j            " Vim >= 7.3.541 only
@@ -393,3 +395,9 @@ command DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=red   ctermbg=3 
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4 
 "map <leader> <Plug>(easymotion-prefix)
+nnoremap <Tab> <Esc>
+vnoremap <Tab> <Esc>gV
+onoremap <Tab> <Esc>
+inoremap <Tab> <Esc>`^
+inoremap <Leader><Tab> <Tab>
+
