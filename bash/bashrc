@@ -140,12 +140,14 @@ function __setup_aliases
     alias la='ls -A'
     alias l='ls -CF'
     alias emacs='emacs -nw'
-    #alias g++='g++ --std=c++11 -g -O0'
+    alias g++='g++ --std=c++11 -g -O0'
     alias e='emacs -nw'
     alias yum_install='yum install -y'
     alias vi='vim'
-    alias make='make -j 8'
+#alias scp='scp -r'
     alias mkdir='mkdir -p'
+    alias scp='rsync -avzP'
+    alias rsync='rsync -avzP'
 }
 
 function __setup_dir_colors
@@ -365,15 +367,15 @@ xterm*|rxvt*)
   ##   sleep 10; alert
   alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
-  export CCACHE_PREFIX="distcc"
+  #export CCACHE_PREFIX="distcc"
   # Alias definitions.
   # You may want to put all your additions into a separate file like
   # ~/.bash_aliases, instead of adding them here directly.
   # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
-  if [ -f ~/.bash_aliases ]; then
-      . ~/.bash_aliases
-  fi
+  #if [ -f ~/.bash_aliases ]; then
+      #. ~/.bash_aliases
+  #fi
 
   #enable programmable completion features (you don't need to enable this, if it's already enabled in /etc/bash.bashrc and /etc/profile sources /etc/bash.bashrc).
   if ! shopt -oq posix; then
@@ -383,6 +385,11 @@ xterm*|rxvt*)
       . /etc/bash_completion
     fi
   fi
-  export DISTCC_HOSTS='10.100.54.72 localhost'
+  #export DISTCC_HOSTS='10.100.54.72 localhost'
+  #export DISTCC_HOSTS='localhost'
   #export TERM=xterm-256color
+
+
+export ACE_ROOT=/home/rob/src/ACE_wrappers
+export LD_LIBRARY_PATH=$ACE_ROOT/ace:$LD_LIBRARY_PATH
 
