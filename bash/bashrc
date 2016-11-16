@@ -2,10 +2,10 @@
 #
 # Suggestion: ln -sf .bashrc .bash_profile
 #
-# Implementation note: all functions with name starts with '__' are considered
+# Implementation note: all functions with name starts with 'm_' are considered
 # private and will be unset at the end.
 
-function __main
+function m_main
 {
     local fn
 
@@ -14,31 +14,31 @@ function __main
     unset PROMPT_COMMAND    # Let tmux manage it
 
     for fn in \
-        __setup_path \
-        __setup_shell_options \
-        __setup_environments \
-        __setup_aliases \
-        __setup_completions \
-        __setup_dir_colors \
-        __setup_ssh_agent \
-        __setup_custom_profiles \
+        m_setup_path \
+        m_setup_shell_options \
+        m_setup_environments \
+        m_setup_aliases \
+        m_setup_completions \
+        m_setup_dir_colors \
+        m_setup_ssh_agent \
+        m_setup_custom_profiles \
     ; do
         $fn; unset -f $fn
     done
 }
 
-function __prepend_path
+function m_prepend_path
 {
     [[ :$PATH: == *:${1:?}:* ]] || PATH=$1:$PATH
 }
 
-function __setup_path
+function m_setup_path
 {
     local x
 
     # prepend paths
     for x in /sbin /usr/sbin /bin /usr/bin /usr/local/bin; do
-        __prepend_path $x
+        m_prepend_path $x
     done
 
     # Try load ChefDK if installed, or else rbenv if installed
@@ -49,18 +49,18 @@ function __setup_path
     fi
 
     # ~/bin takes precedence
-    __prepend_path ~/bin
+    m_prepend_path ~/bin
 
     export PATH
 }
 
-function __setup_shell_options
+function m_setup_shell_options
 {
     bind 'set match-hidden-files off' >& /dev/null  # No tab-expand hidden files
     ! test -t 0 || stty stop undef >& /dev/null     # Make 'C-s' to do i-search
 }
 
-function __setup_environments
+function m_setup_environments
 {
     export HISTFILE=~/.bash_history     # In case switched from zsh temporally
     export HISTSIZE=10000
@@ -82,7 +82,7 @@ function _host_complete
     COMPREPLY=($(compgen -W "$hosts" -- $cur))
 }
 
-function __setup_completions
+function m_setup_completions
 {
     # https://raw.github.com/git/git/master/contrib/completion/git-completion.bash
     [[ ! -f ~/.git-completion.bash ]] || . ~/.git-completion.bash
@@ -90,14 +90,11 @@ function __setup_completions
     complete -A export unset
 }
 
-function __setup_aliases
+function m_setup_aliases
 {
     local lsprog="/bin/ls"
 
-    alias ..='cd ..'
-    alias ...='cd ../..'
-    alias ....='cd ../../..'
-    alias .....='cd ../../../..'
+    alias cd..='cd ..'
     # Skip system wide vimrc to reduce startup time
     ! type vim >& /dev/null || alias vi='vim -Xn -u ~/.vimrc'
     ! type ag >& /dev/null || alias ag='command ag --nogroup'
@@ -140,17 +137,17 @@ function __setup_aliases
     alias la='ls -A'
     alias l='ls -CF'
     alias emacs='emacs -nw'
-    alias g++='g++ --std=c++11 -g -O0'
+   # alias g++='g++ --std=c++11 -g -O0'
     alias e='emacs -nw'
     alias yum_install='yum install -y'
     alias vi='vim'
-#alias scp='scp -r'
+    alias scp='scp -r'
     alias mkdir='mkdir -p'
-    alias scp='rsync -avzP'
+    alias rcp='rsync -avzP'
     alias rsync='rsync -avzP'
 }
 
-function __setup_dir_colors
+function m_setup_dir_colors
 {
     local prog=dircolors
 
@@ -160,22 +157,22 @@ function __setup_dir_colors
     fi
 }
 
-function __has_ssh_key
+function m_has_ssh_key
 {
     [[ -f ~/.ssh/$USER.key ]] || ls ~/.ssh/id_?sa >& /dev/null
 }
 
-function __load_ssh_key
+function m_load_ssh_key
 {
     [[ ! -f "${1:?}" ]] || ssh-add -L | grep -qw "$1" || ssh-add "$1"
 }
 
 # ssh-add -l exits code 2 when unable to connect to the agent
-function __setup_ssh_agent
+function m_setup_ssh_agent
 {
     local rc=~/.ssh-agent.rc
 
-    __has_ssh_key || return 0
+    m_has_ssh_key || return 0
     [[ ! -f $rc ]] || source $rc
     if [[ $(ssh-add -l >& /dev/null; echo $?) == 2 ]]; then
         #print -P "%{\e[31m%}Starting a new ssh-agent process...%{\e[0m}" >&2
@@ -186,9 +183,9 @@ function __setup_ssh_agent
         source $rc
     fi
 
-    __load_ssh_key ~/.ssh/$USER.key
-    __load_ssh_key ~/.ssh/id_rsa
-    __load_ssh_key ~/.ssh/id_dsa
+    m_load_ssh_key ~/.ssh/$USER.key
+    m_load_ssh_key ~/.ssh/id_rsa
+    m_load_ssh_key ~/.ssh/id_dsa
 }
 
 # Non "private" helper function used to setup PS1
@@ -217,7 +214,7 @@ function _git_active_branch
 # Load custom settings from ~/.profile.d/*.sh, typical settings are
 # docker-machine env, GOPATH, customized PATH etc.
 #
-function __setup_custom_profiles
+function m_setup_custom_profiles
 {
     local p
 
@@ -269,8 +266,8 @@ function g
 # Setup everything and unset "private" functions
 ########################################################################
 
-__main
-unset -f __prepend_path __has_ssh_key __load_ssh_key __main
+m_main
+unset -f m_prepend_path m_has_ssh_key m_load_ssh_key m_main
 
 #vim:set et sts=4 sw=4 ft=sh:
 
@@ -392,4 +389,5 @@ xterm*|rxvt*)
 
 export ACE_ROOT=/home/rob/src/ACE_wrappers
 export LD_LIBRARY_PATH=$ACE_ROOT/ace:$LD_LIBRARY_PATH
+source /opt/intel/tbb/bin/tbbvars.sh intel64
 
