@@ -6,56 +6,68 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     echomsg "*** vim-plug is missing, see https://github.com/junegunn/vim-plug"
     finish
 endif
-
-set nocompatible
+let mapeader = "\<Space>"
+"let mapleader = ","
 call plug#begin('~/.vim/plugged')
 
-" No vim-polyglot, which has poor performance
-Plug 'digitaltoad/vim-jade', {'for': 'jade'}
-Plug 'moll/vim-node', {'for': 'javascript'}
-Plug 'hynek/vim-python-pep8-indent', {'for': 'python'}
-Plug 'fatih/vim-go', {'for': 'go'}
-Plug 'Valloric/MatchTagAlways', {'for': 'html'}
-Plug 'tpope/vim-endwise'
-Plug 'ymattw/vim-fold-paragraph'        " My own folding preference
-
-Plug 'elzr/vim-json', {'for': 'json'}
-let g:vim_json_syntax_conceal = 0       " Do not hide quotes
-
+" My Bundles here:
 Plug 'mileszs/ack.vim'
-let g:ackprg = 'ag --vimgrep --smart-case'
-let g:ackhighlight = 1
-cnoreabbrev Ag Ack!
-cnoreabbrev ag Ack!
-cnoreabbrev Af AckFile
-cnoreabbrev af AckFile
-
-" neocomplete can beat YouCompleteMe in both functionality and installation
-" friendly, it also replaces supertab and AutoComplPop.  NOTE! to auto complete
-" in golang, install 'gocode' to work with 'vim-go'.  For example run this from
-" command line: GOPATH=~ vim a.go +GoInstallBinaries +qall
-"
-"if has('lua')
-    "Plug 'Shougo/neocomplete.vim'
-    "let g:neocomplete#enable_at_startup = 1
-    "let g:neocomplete#enable_smart_case = 1
-    "let g:neocomplete#min_keyword_length = 3
-    "let g:neocomplete#auto_completion_start_length = 1
-    ""inoremap <expr><Tab> pumvisible() ? "\<C-n>" : "\<Tab>"  " Tab completion
-    "inoremap <expr><Tab>  "\<C-n>"   " Tab completion
+Plug 'scrooloose/nerdtree'
+Plug 'scrooloose/nerdcommenter'
+Plug 'majutsushi/tagbar'
+Plug 'jiangmiao/auto-pairs'
+Plug 'flazz/vim-colorschemes'
+Plug 'honza/vim-snippets'
+Plug 'tpope/vim-dispatch'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-repeat'
+Plug 'Lokaltog/vim-easymotion'
+Plug 'terryma/vim-expand-region'
+Plug 'kien/ctrlp.vim' 
+"if has('nvim')
+  "Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 "else
-    "Plug 'ervandew/supertab'
-    "let g:SuperTabDefaultCompletionType = "context"
-    "let g:SuperTabContextDefaultCompletionType = "<c-n>"
-    "let g:SuperTabNoCompleteAfter =
-        "\ ['^', '\s', '[^-]>', "'", '[~`!@#$%^&*()+={},</?\"\[\]\|-]']
-
-    "" With my own fix for #53 on bitbucket
-    "Plug 'ymattw/AutoComplPop', {'branch': 'dev'}
+  "Plug 'Shougo/deoplete.nvim'
+  "Plug 'roxma/nvim-yarp'
+  "Plug 'roxma/vim-hug-neovim-rpc'
 "endif
+"let g:deoplete#enable_at_startup = 1
 
+Plug 'neomake/neomake'
+Plug 'mhinz/vim-startify'
+Plug 'nathanaelkane/vim-indent-guides'
+Plug 'yonchu/accelerated-smooth-scroll'
+Plug 'matze/vim-move'
+Plug 'pbrisbin/vim-mkdir'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'elzr/vim-json', {'for': 'json'}
+"let g:vim_json_syntax_conceal = 0       " Do not hide quotes
+
+"Plug 'mileszs/ack.vim'
+"Plug 'altercation/vim-colors-solarized'
+
+"let g:ackprg = 'ag --vimgrep --smart-case'
+"let g:ackhighlight = 1
+"cnoreabbrev Ag Ack!
+"cnoreabbrev ag Ack!
+"cnoreabbrev Af AckFile
+"cnoreabbrev af AckFile
+"let g:ctrlp_map = '<leader>p'
+"let g:ctrlp_cmd = 'CtrlP'
+"map <leader>f :CtrlPMRU<CR>
+"let g:ctrlp_custom_ignore = {
+    "\ 'dir':  '\v[\/]\.(git|hg|svn|rvm)$',
+    "\ 'file': '\v\.(exe|so|dll|zip|tar|tar.gz|pyc)$',
+    "\ }
+""let g:ctrlp_working_path_mode=0
+"let g:ctrlp_working_path_mode = 'c'
+"let g:ctrlp_match_window_bottom=1
+"let g:ctrlp_max_height=15
+"let g:ctrlp_match_window_reversed=0
+"let g:ctrlp_mruf_max=500
+"let g:ctrlp_follow_symlinks=1
 " Remember to change terminal type to xterm-256color!
-Plug 'altercation/vim-colors-solarized'
 
 call plug#end()
 
@@ -79,10 +91,6 @@ endif
 set noswapfile nobackup                 " No tmp files
 set suffixes+=.a,.so,.la,.class,.pyc    " Ignore list for file completion
 set suffixes+=.jpg,.png,.gif,.pdf,.doc,.tar,.tgz,.gz,.bz2,.zip
-set wildignore+=.git,*.o,*.a,*.so,*.la  " Ignore list for wildmenu completion
-set wildignore+=*.class,*.pyc,*.swp
-set wildignore+=*.jpg,*.png,*.gif,*.pdf,*.doc
-set wildignore+=*.tar,*.gz,*.tgz,*.bz2,*.zip
 set incsearch smartcase ignorecase hls  " Searching
 set encoding=utf-8                      " Editing
 "set                textwidth=79        " Editing
@@ -131,18 +139,6 @@ highlight! link ColorColumn Search
 highlight! link SpecialChars ErrorMsg
 2match SpecialChars /\%xa0\|[“”‘’—]/            " nbsp & smartly replaced chars
 
-
-let mapleader=","
-" Maps for normal mode
-nnoremap <Leader>p  "+p|                    " Paste below from system clipboard
-nnoremap <Leader>P  "+P|                    " Paste above from system clipboard
-nnoremap <leader>s  :Ack! -w <cword><CR>|   " Quick search word under cursor
-nnoremap <leader>w  :w<CR>|                 " Save 2 key strokes
-
-" Maps for visual mode
-vnoremap <Leader>y  "+y|                    " Yank (copy) to system clipboard
-vnoremap <Leader>x  "+d|                    " Cut (delete) to system clipboard
-
 " Maps for command mode
 cnoremap w!!        w !sudo tee % > /dev/null
 
@@ -161,43 +157,9 @@ autocmd! BufReadPost *
     \ endif
 
 
-" Helper functions
-"
-" Execute current file and pipe output to new scratch window below, window
-" height will be 1/3 of the vim window size
-"
-function! RunMe()
-    let file = expand("%:p")
-    let line = getline(1)
-
-    exe "botright " . (&lines / 3) . " new"
-        \ | setlocal buftype=nofile bufhidden=hide
-
-    if line =~ "^#!"
-        let intepreter = line[2:]
-    elseif file =~ '\.sh\|\.bash'
-        let intepreter = "bash"
-    elseif file =~ '\.py'
-        let intepreter = "python"
-    elseif file =~ '\.rb'
-        let intepreter = "ruby"
-    elseif file =~ '\.js'
-        let intepreter = "node"
-    elseif file =~ '\.go'
-        let intepreter = "go run"
-    elseif file =~ '\.pl'
-        let intepreter = "perl"
-    else
-        let intepreter = ""
-    endif
-
-    exe ".!" . intepreter . " " . file
-endfunction
-
-" EOF
 "
 " =================== jia vimrc ===============================================
-"let mapleader=","
+"let mapeader=","
 "colorscheme desert
 set number
 set novisualbell
@@ -313,44 +275,28 @@ set report=0
 " 匹配括号高亮的时间（单位是十分之一秒）
 "set matchtime=10
 " 光标移动到buffer的顶部和底部时保持3行距离
-"set scrolloff=3
+
 " 为C程序提供自动缩进
 set smartindent
 " 高亮显示普通txt文件（需要txt.vim脚本）
 "au BufRead,BufNewFile *  setfiletype txt
-"自动补全
-:inoremap ( ()<ESC>i
-:inoremap ) <c-r>=ClosePair(')')<CR>
-:inoremap { {<CR>}<ESC>O
-:inoremap } <c-r>=ClosePair('}')<CR>
-:inoremap [ []<ESC>i
-:inoremap ] <c-r>=ClosePair(']')<CR>
-:inoremap " ""<ESC>i
-:inoremap ' ''<ESC>i
-function! ClosePair(char)
-    if getline('.')[col('.') - 1] == a:char
-        return "\<Right>"
-    else
-        return a:char
-    endif
-endfunction
+
 
 filetype plugin indent on "打开文件类型检测, 加了这句才可以用智能补全
 set completeopt=longest,menu
 set showcmd
 set ai!             " 设置自动缩进
-vmap <C-c> "+y
-vmap <C-x> "+d
-"nmap <C-v> "+p
-"vmap <C-v> "+p
-nmap pp "+p 
-vmap pp "+p 
-nmap <C-a> ggvG$
+"vmap <C-c> "+y
+"vmap <C-x> "+d
+
+"nmap pp "+p 
+"vmap pp "+p 
+"nmap <C-a> ggvG$
 nmap wv     <C-w>v  
 nmap wc     <C-w>c 
 nmap ws     <C-w>s
 nmap ss :wa<cr>
-imap <C-d> <Esc>:wa<cr>i<Right>
+"imap <C-d> <Esc>:wa<cr>i<Right>
 map <F5> :cn<cr>
 nmap <F6> :cp<cr>
 nmap <F9> :bn<cr>
@@ -375,7 +321,7 @@ let g:miniBufExplModSelTarget = 1
 " NerdComment
 "map <leader>c <plug>NERDCommenterComment
 "map <leader>n <plug>NERDCommenterNest
-"map <leader><space> <plug>NERDCommenterToggle
+"map <leader>c <plug>NERDCommenterToggle
 "map <leader>m <plug>NERDCommenterMinimal
 "map <leader>i <plug>NERDCommenterInvert
 "map <leader>y <plug>NERDCommenterYank
@@ -387,17 +333,43 @@ let g:miniBufExplModSelTarget = 1
 "map <leader>u <plug>NERDCommenterUncomment
 " NERDTree
 map <F4> :NERDTreeToggle<CR>
-let g:vimgdb_debug_file = ""
-run macros/gdb_mappings.vim
 command DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis
                  \ | wincmd p | diffthis
 "let g:indent_guides_auto_colors = 0 
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=red   ctermbg=3 
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4 
 "map <leader> <Plug>(easymotion-prefix)
-nnoremap <Tab> <Esc>
-vnoremap <Tab> <Esc>gV
-onoremap <Tab> <Esc>
-inoremap <Tab> <Esc>`^
-inoremap <Leader><Tab> <Tab>
+"nnoremap <Tab> <Esc>
+"vnoremap <Tab> <Esc>gV
+"onoremap <Tab> <Esc>
+"inoremap <Tab> <Esc>`^
+                                
+"nnoremap <leader>s  :Ack! -w <cword><CR>|   " Quick search word under cursor
+"nnoremap <Leader>o :CtrlP<CR>
+nnoremap <Leader>w :w<CR>
+nnoremap <Leader>t V
+  
+
+
+vmap v <Plug>(expand_region_expand)
+vmap <C-v> <Plug>(expand_region_shrink)
+
+vnoremap <silent> y y`]
+vnoremap <silent> p p`]
+nnoremap <silent> p p`]
+" vp doesn't replace paste buffer
+function! RestoreRegister()
+  let @" = s:restore_reg
+  return ''
+endfunction
+function! s:Repl()
+  let s:restore_reg = @"
+  return "p@=RestoreRegister()\<cr>"
+endfunction
+vmap <silent> <expr> p <sid>Repl()
+nnoremap <CR> G
+nnoremap <BS> gg
+noremap gV `[v`]
+map q: :q
+
 
