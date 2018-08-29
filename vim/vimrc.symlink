@@ -6,25 +6,29 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     echomsg "*** vim-plug is missing, see https://github.com/junegunn/vim-plug"
     finish
 endif
-let mapeader = "\<Space>"
-"let mapleader = ","
+let mapleader = "\<Space>"
 call plug#begin('~/.vim/plugged')
-
+"Plug 'terryma/vim-multiple-cursors'
+Plug  'kshenoy/vim-signature'
 " My Bundles here:
-Plug 'mileszs/ack.vim'
+"Plug 'mileszs/ack.vim'
 Plug 'scrooloose/nerdtree'
 Plug 'scrooloose/nerdcommenter'
-Plug 'majutsushi/tagbar'
+"Plug 'majutsushi/tagbar'
 Plug 'jiangmiao/auto-pairs'
+"let g:AutoPairs['<']='>'
 Plug 'flazz/vim-colorschemes'
-Plug 'honza/vim-snippets'
+"Plug 'honza/vim-snippets'
 Plug 'tpope/vim-dispatch'
-Plug 'tpope/vim-fugitive'
+"Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 Plug 'Lokaltog/vim-easymotion'
 Plug 'terryma/vim-expand-region'
-Plug 'kien/ctrlp.vim' 
+Plug 'haya14busa/incsearch.vim'
+Plug 'haya14busa/vim-easyoperator-line'
+Plug 'kien/rainbow_parentheses.vim'
+"Plug 'kien/ctrlp.vim' 
 "if has('nvim')
   "Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 "else
@@ -34,14 +38,14 @@ Plug 'kien/ctrlp.vim'
 "endif
 "let g:deoplete#enable_at_startup = 1
 
-Plug 'neomake/neomake'
-Plug 'mhinz/vim-startify'
-Plug 'nathanaelkane/vim-indent-guides'
-Plug 'yonchu/accelerated-smooth-scroll'
-Plug 'matze/vim-move'
-Plug 'pbrisbin/vim-mkdir'
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'elzr/vim-json', {'for': 'json'}
+"Plug 'neomake/neomake'
+"Plug 'mhinz/vim-startify'
+"Plug 'nathanaelkane/vim-indent-guides'
+"Plug 'yonchu/accelerated-smooth-scroll'
+"Plug 'matze/vim-move'
+"Plug 'pbrisbin/vim-mkdir'
+"Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+"Plug 'elzr/vim-json', {'for': 'json'}
 "let g:vim_json_syntax_conceal = 0       " Do not hide quotes
 
 "Plug 'mileszs/ack.vim'
@@ -159,13 +163,12 @@ autocmd! BufReadPost *
 
 "
 " =================== jia vimrc ===============================================
-"let mapeader=","
+"let mapleader=","
 "colorscheme desert
 set number
 set novisualbell
 set hidden
 set diffopt=filler,iwhite
-
 " 设置当文件被改动时自动载入
 set autoread
 " quickfix模式
@@ -196,7 +199,7 @@ set guioptions-=m           " 隐藏菜单栏
 set nocompatible
 " 语法高亮
 syntax enable
-set syntax=on
+syntax on
 " 去掉输入错误的提示声音
 set noeb
 " 在处理未保存或只读文件的时候，弹出确认
@@ -319,9 +322,10 @@ let g:miniBufExplMapCTabSwitchBufs = 1
 let g:miniBufExplModSelTarget = 1 
 
 " NerdComment
-"map <leader>c <plug>NERDCommenterComment
+map <leader>c <plug>NERDCommenterComment
+map <leader>u <plug>NERDCommenterUncomment
 "map <leader>n <plug>NERDCommenterNest
-"map <leader>c <plug>NERDCommenterToggle
+"map <leader>t <plug>NERDCommenterToggle
 "map <leader>m <plug>NERDCommenterMinimal
 "map <leader>i <plug>NERDCommenterInvert
 "map <leader>y <plug>NERDCommenterYank
@@ -330,7 +334,6 @@ let g:miniBufExplModSelTarget = 1
 "map <leader>a <plug>NERDCommenterAltDelims
 "map <leader>l <plug>NERDCommenterAlignLeft
 "map <leader>b <plug>NERDCommenterAlignBoth
-"map <leader>u <plug>NERDCommenterUncomment
 " NERDTree
 map <F4> :NERDTreeToggle<CR>
 command DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis
@@ -339,14 +342,16 @@ command DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=red   ctermbg=3 
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4 
 "map <leader> <Plug>(easymotion-prefix)
-"nnoremap <Tab> <Esc>
-"vnoremap <Tab> <Esc>gV
-"onoremap <Tab> <Esc>
-"inoremap <Tab> <Esc>`^
+nnoremap <Tab> <Esc>
+vnoremap <Tab> <Esc>gV
+onoremap <Tab> <Esc>
+inoremap <Tab> <Esc>`^
                                 
 "nnoremap <leader>s  :Ack! -w <cword><CR>|   " Quick search word under cursor
 "nnoremap <Leader>o :CtrlP<CR>
 nnoremap <Leader>w :w<CR>
+nnoremap <Leader>q :q<CR>
+nnoremap <Leader>e :e 
 nnoremap <Leader>t V
   
 
@@ -371,5 +376,104 @@ nnoremap <CR> G
 nnoremap <BS> gg
 noremap gV `[v`]
 map q: :q
+set spell
+inoremap < <><LEFT>
+inoremap ll <<
+inoremap lt <
+"nmap  <Leader><Leader> V
+" 输入一个字符时，如果下一个字符也是括号，则删除它，避免出现重复字符
+function! RemoveNextDoubleChar(char)
+  let l:line = getline(".")
+  let l:next_char = l:line[col(".")] " 取得当前光标后一个字符
+
+  if a:char == l:next_char
+    execute "normal! l"
+  else
+    execute "normal! i" . a:char . ""
+  end
+endfunction
+inoremap > <ESC>:call RemoveNextDoubleChar('>')<CR>a
+"vmap <Leader>y "+y
+"vmap <Leader>d "+d
+"nmap <Leader>p "+p
+"nmap <Leader>P "+P
+"vmap <Leader>p "+p
+"vmap <Leader>P "+P
+" <Leader>f{char} to move to {char}
+map  <Leader>f <Plug>(easymotion-bd-f)
+
+" s{char}{char} to move to {char}{char}
+nmap s <Plug>(easymotion-bd-f2)
+
+" Move to line
+map <Leader>l <Plug>(easymotion-bd-jk)
+" Gif config
+map  <Leader>/ <Plug>(easymotion-sn)
+
+" These `n` & `N` mappings are options. You do not have to map `n` & `N` to EasyMotion.
+" Without these mappings, `n` & `N` works fine. (These mappings just provide
+" different highlight method and have some other features )
+map  n <Plug>(easymotion-next)
+map  N <Plug>(easymotion-prev)
+" Move to word
+map  <Leader>w <Plug>(easymotion-bd-w)
+map g/ <Plug>(incsearch-stay)
+
+"" Gif config
+map <Leader>l <Plug>(easymotion-lineforward)
+map <Leader>h <Plug>(easymotion-linebackward)
+
+let g:EasyMotion_startofline = 0 " keep cursor column when JK motion
+let g:EasyMotion_smartcase = 1
+let g:EasyMotion_do_mapping = 0 " Disable default mappings
+
+" Jump to anywhere you want with minimal keystrokes, with just one key binding.
+" `s{char}{label}`
+nmap s <Plug>(easymotion-bd-f)
+" or
+" `s{char}{char}{label}`
+" Need one more keystroke, but on average, it may be more comfortable.
+"nmap s <Plug>(easymotion-bd-f2)
+
+" Turn on case insensitive feature
+let g:EasyMotion_smartcase = 1
+
+" JK motions: Line motions
+map <Leader>j <Plug>(easymotion-j)
+map <Leader>k <Plug>(easymotion-k)
+omap <Leader>L  <Plug>(easyoperator-line-select)
+xmap <Leader>L  <Plug>(easyoperator-line-select)
+nmap d<Leader>L <Plug>(easyoperator-line-delete)
+nmap p<Leader>L <Plug>(easyoperator-line-yank)
 
 
+:packadd! editexisting
+let g:rbpt_colorpairs = [
+    \ ['brown',       'RoyalBlue3'],
+    \ ['Darkblue',    'SeaGreen3'],
+    \ ['darkgray',    'DarkOrchid3'],
+    \ ['darkgreen',   'firebrick3'],
+    \ ['darkcyan',    'RoyalBlue3'],
+    \ ['darkred',     'SeaGreen3'],
+    \ ['darkmagenta', 'DarkOrchid3'],
+    \ ['brown',       'firebrick3'],
+    \ ['gray',        'RoyalBlue3'],
+    \ ['darkmagenta', 'DarkOrchid3'],
+    \ ['Darkblue',    'firebrick3'],
+    \ ['darkgreen',   'RoyalBlue3'],
+    \ ['darkcyan',    'SeaGreen3'],
+    \ ['darkred',     'DarkOrchid3'],
+    \ ['red',         'firebrick3'],
+    \ ]
+
+" 不加入这行, 防止黑色括号出现, 很难识别
+" \ ['black',       'SeaGreen3'],
+
+let g:rbpt_max = 16
+let g:rbpt_loadcmd_toggle = 0
+au VimEnter * RainbowParenthesesToggle
+au Syntax * RainbowParenthesesLoadRound
+au Syntax * RainbowParenthesesLoadSquare
+au Syntax * RainbowParenthesesLoadBraces
+"set relativenumber
+let g:indentLine_setColors = 0
